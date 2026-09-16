@@ -1,0 +1,82 @@
+<section class="stack">
+  <div class="row" style="justify-content: space-between">
+    <div>
+      <h1>Trainingsplan</h1>
+      <p class="muted">Priorisiert aus deinen analysierten Daily-Partien — nicht generische Tipps.</p>
+    </div>
+    <button type="button" class="secondary" (click)="refresh()">Plan aktualisieren</button>
+  </div>
+
+  @if (message()) {
+    <p class="muted">{{ message() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lade Plan…</p>
+  } @else if (plan(); as p) {
+    @if (p.generated_at) {
+      <p class="muted">Erstellt: {{ p.generated_at }} · Fenster {{ p.window_size }} Partien</p>
+    }
+    @if (!p.items.length) {
+      <div class="panel">
+        <p>{{ p.message || 'Noch kein Plan. Sync zuerst Partien.' }}</p>
+        <a routerLink="/">Zum Dashboard</a>
+      </div>
+    } @else {
+      <div class="stack">
+        @for (item of p.items; track item.id) {
+          <article class="panel plan-item">
+            <div class="row" style="justify-content: space-between">
+              <div class="row">
+                <span class="badge" [class]="item.severity">#{{ item.priority }}</span>
+                <h2>{{ item.title }}</h2>
+              </div>
+              <label class="check">
+                <input
+                  type="checkbox"
+                  [checked]="item.completed"
+                  (change)="toggle(item.id, $any($event.target).checked)"
+                />
+                Erledigt
+              </label>
+            </div>
+            <p class="muted">{{ item.metric }}</p>
+            <p>{{ item.why }}</p>
+            <h3>Aufgaben</h3>
+            <ul class="tasks">
+              @for (task of item.tasks; track $index) {
+                <li>
+                  <span>{{ taskText(task) }}</span>
+                  @if (taskLinks(task).length) {
+                    <div class="task-links">
+                      @for (link of taskLinks(task); track link.url) {
+                        <a [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
+                        @if (link.hint) {
+                          <span class="muted hint">{{ link.hint }}</span>
+                        }
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+            @if (item.critical_refs?.length) {
+              <h3>Eigene kritische Stellungen</h3>
+              <ul>
+                @for (ref of item.critical_refs; track ref.game_id + ref.ply) {
+                  <li>
+                    <a [routerLink]="['/games', ref.game_id]">Partie {{ ref.game_id }}</a>
+                    · Zug {{ ref.ply }}
+                    @if (ref.url) {
+                      · <a [href]="ref.url" target="_blank" rel="noopener">chess.com</a>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </article>
+        }
+      </div>
+    }
+  }
+</section>

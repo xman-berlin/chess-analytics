@@ -1,0 +1,67 @@
+<section class="stack">
+  <div>
+    <h1>Partien</h1>
+    <p class="muted">Daily-Partien mit Analyse-Zusammenfassung.</p>
+  </div>
+
+  <div class="row panel filters">
+    <label>
+      Ergebnis
+      <select [value]="filter()" (change)="setFilter($any($event.target).value)">
+        <option value="">Alle</option>
+        <option value="win">Sieg</option>
+        <option value="loss">Niederlage</option>
+        <option value="draw">Remis</option>
+      </select>
+    </label>
+    <label class="check">
+      <input
+        type="checkbox"
+        [checked]="analyzedOnly()"
+        (change)="setAnalyzedOnly($any($event.target).checked)"
+      />
+      Nur analysierte
+    </label>
+    <span class="muted">{{ total() }} Treffer</span>
+  </div>
+
+  @if (loading()) {
+    <p class="muted">Lade Partien…</p>
+  } @else {
+    <div class="panel" style="overflow-x: auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Ergebnis</th>
+            <th>Eröffnung</th>
+            <th>ACPL</th>
+            <th>B/M/I</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of items(); track g.id) {
+            <tr>
+              <td>{{ formatDate(g.end_time) }}</td>
+              <td>{{ resultLabel(g.user_result) }} ({{ g.user_color }})</td>
+              <td>{{ g.opening_name || g.opening_eco || '—' }}</td>
+              <td>{{ g.acpl ?? '—' }}</td>
+              <td>
+                {{ g.blunders ?? 0 }}/{{ g.mistakes ?? 0 }}/{{ g.inaccuracies ?? 0 }}
+              </td>
+              <td class="links">
+                <a [routerLink]="['/games', g.id]">Details</a>
+                <a [href]="g.url" target="_blank" rel="noopener">chess.com</a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="muted">Keine Partien gefunden.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

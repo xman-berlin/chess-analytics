@@ -1,0 +1,37 @@
+<section class="stack">
+  <div>
+    <h1>Einstellungen</h1>
+    <p class="muted">Konfiguration kommt aus der Backend-<code>.env</code> (Neustart nötig zum Ändern).</p>
+  </div>
+
+  @if (settings(); as s) {
+    <div class="panel settings-grid">
+      <div>
+        <p class="muted">Username</p>
+        <p><strong>{{ s['chess_username'] }}</strong></p>
+      </div>
+      <div>
+        <p class="muted">Time classes</p>
+        <p>
+          <span class="badge">daily</span>
+          <span class="muted"> Rapid/Blitz vorbereitet, aktuell aus</span>
+        </p>
+        <p class="muted">Wert: {{ s['time_classes'] }}</p>
+      </div>
+      <div>
+        <p class="muted">Sync-Intervall</p>
+        <p><strong>{{ s['sync_interval_hours'] }} Stunden</strong></p>
+      </div>
+      <div>
+        <p class="muted">Analyse</p>
+        <p>
+          Depth {{ s['analysis_depth'] }} · Limit {{ s['analysis_limit'] }} Partien
+        </p>
+      </div>
+      <div>
+        <p class="muted">Stockfish</p>
+        <p class="mono">{{ s['stockfish_path'] }}</p>
+      </div>
+    </div>
+  }
+</section>

@@ -1,0 +1,65 @@
+<section class="stack">
+  <a routerLink="/games" class="muted">← Zurück zur Liste</a>
+
+  @if (loading()) {
+    <p class="muted">Lade Partie…</p>
+  } @else if (game(); as g) {
+    <header class="panel">
+      <h1>{{ g['opening_name'] || g['opening_eco'] || 'Partie' }}</h1>
+      <p class="muted">
+        {{ g['white_username'] }} ({{ g['white_rating'] }}) vs
+        {{ g['black_username'] }} ({{ g['black_rating'] }}) · Du:
+        {{ g['user_color'] }} · {{ g['user_result'] }}
+      </p>
+      <div class="row">
+        <span>ACPL {{ g['acpl'] ?? '—' }}</span>
+        <span>Blunder {{ g['blunders'] ?? 0 }}</span>
+        <span>Fehler {{ g['mistakes'] ?? 0 }}</span>
+        <span>Ungenau {{ g['inaccuracies'] ?? 0 }}</span>
+        <a [href]="$any(g['url'])" target="_blank" rel="noopener">Auf chess.com öffnen</a>
+      </div>
+      <div class="phase-row muted">
+        Opening ACPL {{ g['opening_acpl'] ?? '—' }} · Middlegame
+        {{ g['middlegame_acpl'] ?? '—' }} · Endgame {{ g['endgame_acpl'] ?? '—' }}
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Kritische Züge</h2>
+      @if (!issues().length) {
+        <p class="muted">Keine markierten Fehler — oder Partie noch nicht analysiert.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Zug</th>
+              <th>SAN</th>
+              <th>Schwere</th>
+              <th>Phase</th>
+              <th>CPL</th>
+              <th>Besser</th>
+              <th>Eval-Verlust</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of issues(); track i.id) {
+              <tr>
+                <td>{{ i.ply }}</td>
+                <td>{{ i.move_san }}</td>
+                <td [class]="severityClass(i.severity)">{{ i.severity }}</td>
+                <td>{{ i.phase }}</td>
+                <td>{{ i.cpl }}</td>
+                <td>{{ i.best_move_san || '—' }}</td>
+                <td>
+                  <div class="bar-track" aria-hidden="true">
+                    <div class="bar-fill" [style.width.%]="evalWidth(i.cpl)"></div>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</section>

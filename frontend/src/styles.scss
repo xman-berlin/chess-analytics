@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink: #1a2421;
+  --muted: #5c6b66;
+  --accent: #0f6b4c;
+  --accent-soft: #d8efe4;
+  --danger: #9b2c2c;
+  --warn: #9a6b16;
+  --surface: #eef3f0;
+  --surface-elevated: #f7faf8;
+  --panel: #ffffff;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Source Sans 3', system-ui, sans-serif;
+  --radius: 10px;
+  --shadow: 0 10px 30px rgba(26, 36, 33, 0.06);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, #cfe8dc 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, #d9e4ef 0%, transparent 50%),
+    var(--surface);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+button,
+.btn {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button.secondary,
+.btn.secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.grid-3 {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.badge.high {
+  background: #fde8e8;
+  color: var(--danger);
+}
+
+.badge.medium {
+  background: #fff3d6;
+  color: var(--warn);
+}
+
+.badge.low {
+  background: #e8eef8;
+  color: #345;
+}
+
+.badge.win {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge.loss {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge.draw {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+a {
+  color: var(--accent);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.severity-blunder {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.severity-mistake {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.severity-inaccuracy {
+  color: #456;
+}

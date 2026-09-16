@@ -1,0 +1,42 @@
+.plan-item h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.plan-item h3 {
+  font-size: 1rem;
+  margin-top: 0.75rem;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.tasks li {
+  margin-bottom: 0.65rem;
+}
+
+.task-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.task-links a {
+  font-weight: 600;
+}
+
+.task-links .hint {
+  font-size: 0.85rem;
+}
