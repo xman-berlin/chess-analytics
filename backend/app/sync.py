@@ -7,6 +7,8 @@ from .chesscom_client import (
     ChessComClient,
     extract_opening,
     game_id_from_url,
+    is_coach_game,
+    public_game_url,
 )
 from .config import get_settings
 from .db import db
@@ -49,6 +51,28 @@ def _normalize_result(user_result: str | None) -> str | None:
     return user_result
 
 
+def purge_coach_games() -> int:
+    with db.connect() as conn:
+        ids = [
+            row["id"]
+            for row in conn.execute(
+                """
+                SELECT id FROM games
+                WHERE pgn LIKE '%[Event "Play vs Coach"]%'
+                   OR white_username LIKE 'Coach-%'
+                   OR black_username LIKE 'Coach-%'
+                """
+            ).fetchall()
+        ]
+        if not ids:
+            return 0
+        marks = ",".join("?" * len(ids))
+        for table in ("move_issues", "analyses", "quiz_attempts"):
+            conn.execute(f"DELETE FROM {table} WHERE game_id IN ({marks})", ids)
+        conn.execute(f"DELETE FROM games WHERE id IN ({marks})", ids)
+    return len(ids)
+
+
 def sync_games(force_full: bool = False) -> dict[str, Any]:
     settings = get_settings()
     client = ChessComClient(settings.chess_username)
@@ -70,6 +94,7 @@ def sync_games(force_full: bool = False) -> dict[str, Any]:
         inserted = 0
         scanned = 0
         daily_seen = 0
+        purge_coach_games()
 
         for archive_url in archives:
             games = client.get_games_for_archive(archive_url)
@@ -80,14 +105,17 @@ def sync_games(force_full: bool = False) -> dict[str, Any]:
                     continue
 
                 daily_seen += 1
-                url = game.get("url") or ""
+                raw_url = game.get("url") or ""
                 pgn = game.get("pgn") or ""
-                if not url or not pgn:
+                if not raw_url or not pgn:
                     continue
 
-                gid = game_id_from_url(url)
+                gid = game_id_from_url(raw_url)
+                url = public_game_url(raw_url, pgn, game.get("uuid"))
                 white = game.get("white") or {}
                 black = game.get("black") or {}
+                if is_coach_game(pgn, white.get("username"), black.get("username")):
+                    continue
                 color = _user_color(game, settings.chess_username)
                 user_result_raw = _user_result(game, color)
                 eco, opening_name = extract_opening(pgn)

@@ -191,6 +191,9 @@ def analyze_pending(limit: int | None = None) -> dict[str, Any]:
                 """
                 SELECT id, pgn, user_color FROM games
                 WHERE analyzed = 0 AND user_color IS NOT NULL
+                  AND pgn NOT LIKE '%[Event "Play vs Coach"]%'
+                  AND IFNULL(white_username, '') NOT LIKE 'Coach-%'
+                  AND IFNULL(black_username, '') NOT LIKE 'Coach-%'
                 ORDER BY end_time DESC
                 LIMIT ?
                 """,
@@ -202,6 +205,9 @@ def analyze_pending(limit: int | None = None) -> dict[str, Any]:
                 """
                 SELECT id, pgn, user_color FROM games
                 WHERE analyzed = 0 AND user_color IS NOT NULL
+                  AND pgn NOT LIKE '%[Event "Play vs Coach"]%'
+                  AND IFNULL(white_username, '') NOT LIKE 'Coach-%'
+                  AND IFNULL(black_username, '') NOT LIKE 'Coach-%'
                 ORDER BY end_time DESC
                 LIMIT ?
                 """,

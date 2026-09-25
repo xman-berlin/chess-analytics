@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Api, AppStatus, CoachPlan } from '../../core/api';
+import { Api, AppStatus, TrainingWeek } from '../../core/api';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,7 +21,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly status = signal<AppStatus | null>(null);
-  readonly coach = signal<CoachPlan | null>(null);
+  readonly week = signal<TrainingWeek | null>(null);
   readonly loading = signal(true);
   readonly syncing = signal(false);
   readonly error = signal<string | null>(null);
@@ -53,9 +53,9 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       error: () => this.error.set('Backend nicht erreichbar. Läuft die API auf Port 8000?'),
     });
-    this.api.getCoach().subscribe({
-      next: (coach) => {
-        this.coach.set(coach);
+    this.api.getWeek().subscribe({
+      next: (week) => {
+        this.week.set(week);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),

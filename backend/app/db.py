@@ -82,6 +82,36 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
     PRIMARY KEY (game_id, ply)
 );
 
+CREATE TABLE IF NOT EXISTS opening_trained (
+    color TEXT NOT NULL,
+    name TEXT NOT NULL,
+    trained_at TEXT NOT NULL,
+    PRIMARY KEY (color, name)
+);
+
+CREATE TABLE IF NOT EXISTS training_weeks (
+    week_start TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    closed_at TEXT,
+    verdict_json TEXT
+);
+
+CREATE TABLE IF NOT EXISTS week_items (
+    week_start TEXT NOT NULL,
+    item_key TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    sort_order INTEGER NOT NULL,
+    payload_json TEXT NOT NULL,
+    PRIMARY KEY (week_start, item_key)
+);
+
+CREATE TABLE IF NOT EXISTS position_mastered (
+    game_id TEXT NOT NULL,
+    ply INTEGER NOT NULL,
+    mastered_at TEXT NOT NULL,
+    PRIMARY KEY (game_id, ply)
+);
+
 CREATE TABLE IF NOT EXISTS sync_state (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     last_sync_at TEXT,

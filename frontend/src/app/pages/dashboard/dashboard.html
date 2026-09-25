@@ -2,7 +2,7 @@
   <div class="row" style="justify-content: space-between">
     <div>
       <h1>Dashboard</h1>
-      <p class="muted">Auswertung deiner Daily-Partien und die Hausaufgabe für diese Woche.</p>
+      <p class="muted">Auswertung deiner Daily-Partien und die Aufgaben dieser Woche.</p>
     </div>
     <button type="button" (click)="syncNow()" [disabled]="syncing()">
       {{ syncing() ? 'Sync läuft…' : 'Jetzt syncen & analysieren' }}
@@ -33,25 +33,31 @@
     </div>
   }
 
-  @if (coach(); as coach) {
+  @if (week(); as week) {
     <section class="panel">
       <div class="row" style="justify-content: space-between">
         <div>
-          <p class="muted">{{ coach.level_label }} · Ziel {{ coach.target_rating }}</p>
-          <h2>{{ coach.assignment_title }}</h2>
+          <p class="muted">{{ week.week_label }}</p>
+          <h2>{{ week.headline }}</h2>
         </div>
-        <a class="btn" routerLink="/quiz">Üben</a>
+        <a class="btn" routerLink="/plan">Zur Woche</a>
       </div>
-      <p>{{ coach.diagnosis }}</p>
-      @if (coach.progress) {
-        <p class="muted">{{ coach.progress }}</p>
+      @if (week.pending_check) {
+        <p>Der Check der letzten Woche ist offen. Er legt fest, was wiederholt wird und was neu kommt.</p>
+      } @else {
+        <ul>
+          @for (line of week.openings; track line.key) {
+            <li>{{ line.color_label }}: {{ line.moves || line.name }}</li>
+          }
+          @for (position of week.positions; track position.key) {
+            @if (position.key === week.today_position_key) {
+              <li>{{ position.day }}: Stellung gegen {{ position.opponent }}</li>
+            }
+          }
+        </ul>
       }
-      @if (coach.tasks[0]; as task) {
-        <p><strong>Hausaufgabe:</strong> {{ task.text }}</p>
-      }
-      <a routerLink="/plan">Trainingsplan</a>
-      ·
-      <a routerLink="/curriculum">Lehrplan</a>
+      <p>{{ week.check_summary }}</p>
+      <a routerLink="/openings">Eröffnungen</a>
     </section>
   }
 </section>

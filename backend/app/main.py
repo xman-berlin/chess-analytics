@@ -14,6 +14,8 @@ from .config import get_settings
 from .db import db, row_to_dict, rows_to_dicts
 from .insights import get_insights
 from .leaks import get_leak_report, get_quiz, record_quiz_attempt, reset_quiz
+from .openings import get_opening_report, set_opening_trained
+from .week import close_current_week, get_current_week
 from .plan import generate_training_plan, get_training_plan, set_plan_item_completed
 from .scheduler import (
     analyze_pipeline,
@@ -53,6 +55,13 @@ class QuizAttempt(BaseModel):
     game_id: str
     ply: int
     uci: str
+
+
+class OpeningTrainedUpdate(BaseModel):
+    color: str
+    name: str
+    trained: bool
+    days: int = 90
 
 
 class SettingsUpdate(BaseModel):
@@ -205,6 +214,32 @@ def get_game(game_id: str) -> dict[str, Any]:
             ).fetchall()
         )
     return {"game": game, "issues": issues, "review": review_game(issues, game)}
+
+
+@app.get("/api/openings")
+def openings(days: int = Query(90)) -> dict[str, Any]:
+    return get_opening_report(days)
+
+
+@app.post("/api/openings/trained")
+def opening_trained(body: OpeningTrainedUpdate) -> dict[str, Any]:
+    try:
+        return set_opening_trained(body.color, body.name, body.trained, body.days)
+    except ValueError as exc:
+        raise HTTPException(400, "Variante kann nicht gespeichert werden") from exc
+
+
+@app.get("/api/week")
+def week() -> dict[str, Any]:
+    return get_current_week()
+
+
+@app.post("/api/week/close")
+def week_close() -> dict[str, Any]:
+    try:
+        return close_current_week()
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @app.get("/api/insights")

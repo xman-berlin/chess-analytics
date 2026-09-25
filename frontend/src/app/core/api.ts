@@ -183,6 +183,70 @@ export interface GameReview {
   url?: string | null;
 }
 
+export interface WeekOpening {
+  key: string;
+  color: 'white' | 'black';
+  color_label: string;
+  name: string;
+  moves: string | null;
+  trained: boolean;
+  verdict: 'advance' | 'repeat';
+  verdict_label: string;
+  reason: string;
+  title: string;
+}
+
+export interface WeekPosition {
+  key: string;
+  day: string;
+  game_id: string;
+  ply: number;
+  fen: string;
+  move_san: string | null;
+  best_move_san: string | null;
+  opening_name: string | null;
+  opponent: string;
+  cpl: number | null;
+  prompt: string;
+  solved: boolean;
+  verdict: 'advance' | 'repeat';
+  verdict_label: string;
+  reason: string;
+  title: string;
+}
+
+export interface WeekReview {
+  game_id: string;
+  ply: number | null;
+  text: string;
+  opening_name: string | null;
+}
+
+export interface WeekPreview {
+  week_label: string;
+  openings: { color_label: string; name: string; moves: string | null }[];
+  positions: { day: string; opponent: string; ply: number; move: number }[];
+}
+
+export interface TrainingWeek {
+  week_start: string;
+  week_label: string;
+  today_label: string;
+  headline: string;
+  pending_check: boolean;
+  can_close: boolean;
+  check_first: boolean;
+  closed: boolean;
+  rule: string;
+  openings: WeekOpening[];
+  positions: WeekPosition[];
+  today_position_key: string | null;
+  reviews: WeekReview[];
+  check_summary: string;
+  last_check: { week_label: string; summary: string } | null;
+  next_week: WeekPreview | null;
+}
+
 export interface CoachTask {
   kind: 'practice' | 'game' | 'review';
   text: string;
@@ -252,6 +316,60 @@ export interface QuizAttemptResult {
   why: string;
 }
 
+export interface OpeningSlip {
+  ply: number;
+  move_number: number;
+  move_san: string | null;
+  best_move_san: string | null;
+  severity: string;
+  label: string;
+}
+
+export interface OpeningFault {
+  game_id: string;
+  url: string | null;
+  result: string | null;
+  ply: number;
+  slips: OpeningSlip[];
+}
+
+export interface OpeningSpot {
+  move: number;
+  count: number;
+}
+
+export interface OpeningLine {
+  name: string;
+  moves: string | null;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  inaccuracies: number;
+  serious: number;
+  when: string;
+  spots: OpeningSpot[];
+  faults: OpeningFault[];
+  trained: boolean;
+  chessly: boolean;
+}
+
+export interface OpeningColor {
+  color: 'white' | 'black';
+  label: string;
+  lines: OpeningLine[];
+  recommend: OpeningLine[];
+  done: OpeningLine[];
+}
+
+export interface OpeningReport {
+  games: number;
+  days: number;
+  window: string;
+  summary: string;
+  colors: OpeningColor[];
+}
+
 export interface MoveIssue {
   id: number;
   game_id: string;
@@ -278,6 +396,29 @@ export class Api {
   triggerSync(full = false): Observable<{ status: string; message?: string }> {
     const params = new HttpParams().set('full', String(full)).set('background', 'true');
     return this.http.post<{ status: string; message?: string }>(`${API}/sync`, null, { params });
+  }
+
+  getOpenings(days = 90): Observable<OpeningReport> {
+    return this.http.get<OpeningReport>(`${API}/openings`, {
+      params: new HttpParams().set('days', days),
+    });
+  }
+
+  setOpeningTrained(body: {
+    color: string;
+    name: string;
+    trained: boolean;
+    days: number;
+  }): Observable<OpeningReport> {
+    return this.http.post<OpeningReport>(`${API}/openings/trained`, body);
+  }
+
+  getWeek(): Observable<TrainingWeek> {
+    return this.http.get<TrainingWeek>(`${API}/week`);
+  }
+
+  closeWeek(): Observable<TrainingWeek> {
+    return this.http.post<TrainingWeek>(`${API}/week/close`, null);
   }
 
   getCoach(): Observable<CoachPlan> {

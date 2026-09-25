@@ -55,6 +55,26 @@ def extract_opening(pgn: str) -> tuple[str | None, str | None]:
     return eco, name
 
 
+def is_coach_game(pgn: str, white: str | None = None, black: str | None = None) -> bool:
+    if '[Event "Play vs Coach"]' in (pgn or ""):
+        return True
+    for name in (white, black):
+        if name and name.lower().startswith("coach-"):
+            return True
+    return False
+
+
+def public_game_url(url: str, pgn: str, uuid: str | None) -> str:
+    """Coach games reuse a daily id that belongs to someone else's game.
+
+    Chess.com's numeric /game/daily/{id} link then opens the wrong game.
+    The same id as a UUID opens the coach game.
+    """
+    if uuid and '[Event "Play vs Coach"]' in (pgn or ""):
+        return f"https://www.chess.com/game/daily/{uuid}"
+    return url
+
+
 def game_id_from_url(url: str) -> str:
     # https://www.chess.com/game/daily/123 -> daily-123
     parts = url.rstrip("/").split("/")

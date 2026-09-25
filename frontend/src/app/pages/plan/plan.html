@@ -1,102 +1,177 @@
-<section class="stack">
-  <div class="row" style="justify-content: space-between">
-    <div>
-      <h1>Trainingsplan</h1>
-      <p class="muted">Eine Hausaufgabe aus deinem Daily-Niveau und den letzten Partien.</p>
-    </div>
-    <button type="button" class="secondary" (click)="load()">Neu auswerten</button>
+<section class="stack week">
+  <div>
+    <h1>Woche</h1>
+    @if (week(); as week) {
+      <p class="muted">{{ week.week_label }} · {{ week.headline }}</p>
+    }
   </div>
 
   @if (message()) {
     <p class="panel" role="alert">{{ message() }}</p>
   }
 
-  @if (loading()) {
-    <p class="muted">Werte die Partien aus…</p>
-  } @else if (coach(); as coach) {
-    <article class="panel">
-      <p class="muted">
-        @if (coach.rating) {
-          {{ coach.rating }} Daily
-          @if (coach.best_rating) {
-            · Best {{ coach.best_rating }}
-          }
-          · Ziel {{ coach.target_rating }}
-        } @else {
-          Ziel {{ coach.target_rating }} Daily
-        }
-      </p>
-      <h2>{{ coach.level_label }}</h2>
-      <p>{{ coach.level_principle }}</p>
-    </article>
-
-    <article class="panel">
-      <h2>Auswertung</h2>
-      <p>{{ coach.diagnosis }}</p>
-      @if (coach.progress) {
-        <p>{{ coach.progress }}</p>
-      }
-      @if (coach.recent.games > 0) {
-        <ul class="leak-counts">
-          <li [class.active]="coach.focus === 'thrown_win'">
-            Gewinn verschenkt <strong>{{ coach.recent.thrown_wins }}</strong>
-          </li>
-          <li [class.active]="coach.focus === 'thrown_draw'">
-            Remis verspielt <strong>{{ coach.recent.thrown_draws }}</strong>
-          </li>
-          <li [class.active]="coach.focus === 'lost_early'">
-            Schon früh verloren <strong>{{ coach.recent.lost_early }}</strong>
-          </li>
-        </ul>
-      }
-    </article>
-
-    <article class="panel">
-      <h2>{{ coach.assignment_title }}</h2>
-      @if (!coach.tasks.length) {
-        <p>Sync zuerst Partien. Danach steht hier eine Aufgabe.</p>
-        <a routerLink="/">Zum Dashboard</a>
-      } @else {
-        <ol class="tasks">
-          @for (task of coach.tasks; track task.kind) {
-            <li>{{ task.text }}</li>
-          }
-        </ol>
-        @if (coach.focus) {
-          <a class="btn" routerLink="/quiz">
-            @if (coach.practice.available > 0) {
-              Jetzt üben ({{ coach.practice.available }})
-            } @else {
-              Üben öffnen
-            }
-          </a>
-        }
-      }
-      <p class="muted curriculum-link">
-        Der <a routerLink="/curriculum">Lehrplan</a> bleibt die ganze Woche stehen. Diese Auswertung legt nur fest, welches Gebiet länger ist.
-      </p>
-    </article>
-
-    @if (coach.latest_game; as game) {
+  @if (loading() && !week()) {
+    <p class="muted">Stelle die Aufgaben zusammen…</p>
+  } @else if (week(); as week) {
+    @if (week.last_check; as last) {
       <article class="panel">
-        <h2>Letzte Partie</h2>
-        <p>{{ game.headline }}</p>
-        <p>{{ game.detail }}</p>
-        @if (game.game_id) {
-          <a [routerLink]="['/games', game.game_id]" [queryParams]="{ ply: game.ply }">Partie öffnen</a>
-        }
+        <h2>Check vom {{ last.week_label }}</h2>
+        <p>{{ last.summary }}</p>
       </article>
     }
 
-    @if (coach.withheld.length) {
-      <article class="panel">
-        <h2>Diese Woche nicht</h2>
+    <article class="panel" [style.order]="week.check_first ? 1 : 5">
+      <h2>Wochen-Check</h2>
+      <p>{{ week.rule }}</p>
+      <p><strong>{{ week.check_summary }}</strong></p>
+      <ul class="check-list">
+        @for (line of week.openings; track line.key) {
+          <li>
+            <span class="badge" [class.high]="line.verdict === 'repeat'">{{ line.verdict_label }}</span>
+            {{ line.title }}
+            <span class="muted">{{ line.reason }}</span>
+          </li>
+        }
+        @for (position of week.positions; track position.key) {
+          <li>
+            <span class="badge" [class.high]="position.verdict === 'repeat'">{{ position.verdict_label }}</span>
+            {{ position.title }}
+            <span class="muted">{{ position.reason }}</span>
+          </li>
+        }
+      </ul>
+      @if (week.closed && week.next_week; as next) {
+        <h3>Ab {{ next.week_label }}</h3>
         <ul>
-          @for (item of coach.withheld; track item) {
-            <li>{{ item }}</li>
+          @for (line of next.openings; track line.name) {
+            <li>{{ line.color_label }}: {{ line.name }} @if (line.moves) { · {{ line.moves }} }</li>
+          }
+          @for (position of next.positions; track position.day + position.ply) {
+            <li>{{ position.day }}: Zug {{ position.move }} gegen {{ position.opponent }}</li>
           }
         </ul>
+      } @else if (week.can_close) {
+        <button type="button" (click)="closeWeek()" [disabled]="closing()">
+          {{ closing() ? 'Speichere…' : 'Woche abschließen' }}
+        </button>
+      } @else {
+        <p class="muted">Der Button zum Abschließen steht am Sonntag.</p>
+      }
+    </article>
+
+    @if (!week.closed) {
+      <article class="panel" [style.order]="2">
+        <h2>Jeden Tag auf Chessly</h2>
+        @if (!week.openings.length) {
+          <p>In den letzten 90 Tagen gibt es keine Linie, die sich zum Üben wiederholt.</p>
+        }
+        @for (line of week.openings; track line.key) {
+          <div class="line">
+            <p>
+              <strong>{{ line.color_label }}</strong> · {{ line.name }}
+            </p>
+            @if (line.moves) {
+              <p class="moves">{{ line.moves }}</p>
+            }
+            @if (line.trained) {
+              <button type="button" class="secondary" (click)="markLine(line.color, line.name, false)">
+                Wieder vorschlagen
+              </button>
+            } @else {
+              <button type="button" (click)="markLine(line.color, line.name, true)">Genug trainiert</button>
+            }
+          </div>
+        }
       </article>
+
+      @if (active(); as position) {
+        <article class="panel practice" [style.order]="3">
+          <h2>{{ position.day || 'Stellung' }}</h2>
+          <div class="practice-layout">
+            <app-quiz-board
+              [fen]="position.fen"
+              [revision]="revision()"
+              [locked]="checking() || !!feedback()"
+              (played)="onPlayed($event)"
+            />
+            <div>
+              <p>{{ position.prompt }}</p>
+              <p class="muted">
+                Gegen {{ position.opponent }}
+                @if (position.opening_name) {
+                  · {{ position.opening_name }}
+                }
+              </p>
+              @if (checking()) {
+                <p class="muted">Prüfe Zug…</p>
+              } @else if (feedback(); as result) {
+                <div class="result" [class.ok]="result.correct" [class.bad]="!result.correct">
+                  @if (result.correct) {
+                    <p><strong>Richtig:</strong> {{ result.best_san }}</p>
+                  } @else {
+                    <p><strong>Daneben.</strong> {{ result.attempt_san }} hält die Stellung nicht.</p>
+                    <p>In der Partie lief {{ result.played_san }}. Besser ist {{ result.best_san }}.</p>
+                  }
+                  @if (result.why) {
+                    <p>{{ result.why }}</p>
+                  }
+                </div>
+              }
+              <p>
+                <a [routerLink]="['/games', position.game_id]" [queryParams]="{ ply: position.ply }">
+                  Partie an dieser Stelle
+                </a>
+              </p>
+            </div>
+          </div>
+        </article>
+      }
+
+      @if (week.positions.length) {
+        <article class="panel" [style.order]="4">
+          <h2>Stellungen dieser Woche</h2>
+          <ul class="days">
+            @for (position of week.positions; track position.key) {
+              <li>
+                <button
+                  type="button"
+                  class="secondary"
+                  [class.current]="position.key === (selectedKey() ?? week.today_position_key)"
+                  (click)="choose(position.key)"
+                >
+                  {{ position.day }}
+                  @if (position.solved) {
+                    · richtig
+                  } @else {
+                    · offen
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </article>
+      }
     }
+
+    <article class="panel" [style.order]="6">
+      <h2>Nach der Partie</h2>
+      @if (!week.reviews.length) {
+        <p>Wenn eine Daily zu Ende ist, steht hier die eine Stelle, die du dir ansiehst.</p>
+      } @else {
+        <ul>
+          @for (review of week.reviews; track review.game_id) {
+            <li>
+              {{ review.text }}
+              <a
+                [routerLink]="['/games', review.game_id]"
+                [queryParams]="review.ply ? { ply: review.ply } : null"
+              >
+                Partie öffnen
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </article>
   }
 </section>

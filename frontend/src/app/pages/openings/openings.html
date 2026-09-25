@@ -1,0 +1,113 @@
+<section class="stack">
+  <div>
+    <h1>Eröffnungen</h1>
+    <p class="muted">Welche Variante sich mit Weiß und mit Schwarz als Nächstes auf Chessly lohnt.</p>
+  </div>
+
+  <div class="row" role="group" aria-label="Zeitraum">
+    @for (option of windows; track option.days) {
+      <button
+        type="button"
+        [class.secondary]="days() !== option.days"
+        (click)="setDays(option.days)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  @if (message()) {
+    <p class="panel" role="alert">{{ message() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Werte die Eröffnungen aus…</p>
+  } @else if (report(); as report) {
+    <article class="panel">
+      <p>{{ report.summary }}</p>
+      <p class="muted">
+        Eine Variante lohnt sich, wenn du sie in diesem Zeitraum mindestens zweimal gespielt hast und die
+        gemeinsame Zugfolge lang genug für Chessly ist. „Genug trainiert“ nimmt sie aus der Empfehlung.
+      </p>
+    </article>
+
+    @for (color of report.colors; track color.color) {
+      <section class="stack">
+        <h2>{{ color.label }}</h2>
+
+        @if (!color.recommend.length) {
+          <p class="muted">Keine weitere Variante in diesem Zeitraum.</p>
+        }
+
+        @for (line of color.recommend; track line.name; let first = $first) {
+          <article class="panel" [class.current]="first">
+            <p class="muted">{{ first ? 'Als Nächstes auf Chessly' : 'Danach' }}</p>
+            <h3>{{ line.name }}</h3>
+            @if (line.moves) {
+              <p class="moves">{{ line.moves }}</p>
+            }
+            <p>
+              {{ line.games }} {{ line.games === 1 ? 'Partie' : 'Partien' }} · {{ line.wins }}
+              {{ line.wins === 1 ? 'Sieg' : 'Siege' }} · {{ line.draws }} Remis · {{ line.losses }}
+              {{ line.losses === 1 ? 'Niederlage' : 'Niederlagen' }}
+            </p>
+            <p>{{ line.when }}</p>
+            <div class="row">
+              <button type="button" (click)="mark(color.color, line.name, true)">Genug trainiert</button>
+              @if (line.faults.length) {
+                <button type="button" class="secondary" (click)="toggle(color.color, line.name)">
+                  {{ isOpen(color.color, line.name) ? 'Fehler schließen' : 'Fehler anzeigen' }}
+                </button>
+              }
+            </div>
+            @if (isOpen(color.color, line.name)) {
+              <ul class="errors">
+                @for (fault of line.faults; track fault.game_id) {
+                  <li>
+                    <div class="slips">
+                      @for (slip of fault.slips; track slip.ply) {
+                        <span>
+                          <span
+                            class="badge"
+                            [class.high]="slip.severity === 'blunder'"
+                            [class.medium]="slip.severity === 'mistake'"
+                            >{{ slip.label }}</span
+                          >
+                          Zug {{ slip.move_number }} · {{ slip.move_san }}
+                          @if (slip.best_move_san) {
+                            statt {{ slip.best_move_san }}
+                          }
+                        </span>
+                      }
+                    </div>
+                    <span class="error-links">
+                      <a [routerLink]="['/games', fault.game_id]" [queryParams]="{ ply: fault.ply }">Partie</a>
+                      @if (fault.url) {
+                        <a [href]="fault.url" target="_blank" rel="noopener">chess.com</a>
+                      }
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          </article>
+        }
+
+        @if (color.done.length) {
+          <h3>Schon trainiert</h3>
+          @for (line of color.done; track line.name) {
+            <article class="panel done">
+              <h3>{{ line.name }}</h3>
+              @if (line.moves) {
+                <p class="moves">{{ line.moves }}</p>
+              }
+              <button type="button" class="secondary" (click)="mark(color.color, line.name, false)">
+                Wieder vorschlagen
+              </button>
+            </article>
+          }
+        }
+      </section>
+    }
+  }
+</section>

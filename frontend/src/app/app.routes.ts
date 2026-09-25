@@ -13,14 +13,14 @@ export const routes: Routes = [
         path: 'plan',
         loadComponent: () => import('./pages/plan/plan').then((m) => m.Plan),
       },
-      {
-        path: 'curriculum',
-        loadComponent: () =>
-          import('./pages/curriculum/curriculum').then((m) => m.CurriculumPage),
-      },
+      { path: 'curriculum', redirectTo: 'plan', pathMatch: 'full' },
       {
         path: 'quiz',
         loadComponent: () => import('./pages/quiz/quiz').then((m) => m.Quiz),
+      },
+      {
+        path: 'openings',
+        loadComponent: () => import('./pages/openings/openings').then((m) => m.OpeningsPage),
       },
       {
         path: 'games',

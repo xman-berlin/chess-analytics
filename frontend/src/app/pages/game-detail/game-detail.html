@@ -16,8 +16,12 @@
         <span>Blunder {{ g['blunders'] ?? 0 }}</span>
         <span>Fehler {{ g['mistakes'] ?? 0 }}</span>
         <span>Ungenau {{ g['inaccuracies'] ?? 0 }}</span>
-        <a [href]="$any(g['url'])" target="_blank" rel="noopener">Auf chess.com öffnen</a>
       </div>
+      @if (g['url']) {
+        <p>
+          <a class="btn" [href]="$any(g['url'])" target="_blank" rel="noopener">Spiel auf chess.com öffnen</a>
+        </p>
+      }
       <div class="phase-row muted">
         Opening ACPL {{ g['opening_acpl'] ?? '—' }} · Middlegame
         {{ g['middlegame_acpl'] ?? '—' }} · Endgame {{ g['endgame_acpl'] ?? '—' }}
