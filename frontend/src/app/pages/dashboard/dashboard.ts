@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Api, AppStatus, Insights, TrainingPlan } from '../../core/api';
+import { Api, AppStatus, CoachPlan } from '../../core/api';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,8 +21,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly status = signal<AppStatus | null>(null);
-  readonly insights = signal<Insights | null>(null);
-  readonly plan = signal<TrainingPlan | null>(null);
+  readonly coach = signal<CoachPlan | null>(null);
   readonly loading = signal(true);
   readonly syncing = signal(false);
   readonly error = signal<string | null>(null);
@@ -54,13 +53,9 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       error: () => this.error.set('Backend nicht erreichbar. Läuft die API auf Port 8000?'),
     });
-    this.api.getInsights().subscribe({
-      next: (i) => this.insights.set(i),
-      error: () => undefined,
-    });
-    this.api.getPlan().subscribe({
-      next: (p) => {
-        this.plan.set(p);
+    this.api.getCoach().subscribe({
+      next: (coach) => {
+        this.coach.set(coach);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -78,8 +73,4 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  firstTaskText(task: string | { text: string } | undefined): string {
-    if (!task) return '';
-    return typeof task === 'string' ? task : task.text;
-  }
 }

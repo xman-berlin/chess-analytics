@@ -1,35 +1,29 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Api, CoachPlan } from '../../core/api';
+import { Api, Curriculum } from '../../core/api';
 
 @Component({
-  selector: 'app-plan',
+  selector: 'app-curriculum',
   imports: [RouterLink],
-  templateUrl: './plan.html',
-  styleUrl: './plan.scss',
+  templateUrl: './curriculum.html',
+  styleUrl: './curriculum.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Plan implements OnInit {
+export class CurriculumPage implements OnInit {
   private readonly api = inject(Api);
 
-  readonly coach = signal<CoachPlan | null>(null);
+  readonly curriculum = signal<Curriculum | null>(null);
   readonly loading = signal(true);
   readonly message = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.load();
-  }
-
-  load(): void {
-    this.loading.set(true);
-    this.message.set(null);
     this.api.getCoach().subscribe({
       next: (coach) => {
-        this.coach.set(coach);
+        this.curriculum.set(coach.curriculum);
         this.loading.set(false);
       },
       error: () => {
-        this.message.set('Plan konnte nicht geladen werden.');
+        this.message.set('Lehrplan konnte nicht geladen werden.');
         this.loading.set(false);
       },
     });

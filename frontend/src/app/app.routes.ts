@@ -14,6 +14,15 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/plan/plan').then((m) => m.Plan),
       },
       {
+        path: 'curriculum',
+        loadComponent: () =>
+          import('./pages/curriculum/curriculum').then((m) => m.CurriculumPage),
+      },
+      {
+        path: 'quiz',
+        loadComponent: () => import('./pages/quiz/quiz').then((m) => m.Quiz),
+      },
+      {
         path: 'games',
         loadComponent: () => import('./pages/games/games').then((m) => m.Games),
       },

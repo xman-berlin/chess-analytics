@@ -11,7 +11,9 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 export class Shell {
   readonly links = [
     { path: '/', label: 'Dashboard', exact: true },
+    { path: '/quiz', label: 'Üben', exact: false },
     { path: '/plan', label: 'Trainingsplan', exact: false },
+    { path: '/curriculum', label: 'Lehrplan', exact: false },
     { path: '/games', label: 'Partien', exact: false },
     { path: '/settings', label: 'Einstellungen', exact: false },
   ];

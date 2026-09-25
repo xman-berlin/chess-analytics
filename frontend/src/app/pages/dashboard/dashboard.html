@@ -2,7 +2,7 @@
   <div class="row" style="justify-content: space-between">
     <div>
       <h1>Dashboard</h1>
-      <p class="muted">Deine Daily-Schwächen auf einen Blick — und was als Nächstes trainiert wird.</p>
+      <p class="muted">Auswertung deiner Daily-Partien und die Hausaufgabe für diese Woche.</p>
     </div>
     <button type="button" (click)="syncNow()" [disabled]="syncing()">
       {{ syncing() ? 'Sync läuft…' : 'Jetzt syncen & analysieren' }}
@@ -33,47 +33,25 @@
     </div>
   }
 
-  @if (insights(); as i) {
-    <section class="panel">
-      <h2>Top-Schwächen</h2>
-      @if (i.games_count === 0) {
-        <p class="muted">Noch keine Analysen. Starte einen Sync.</p>
-      } @else {
-        <p class="muted">
-          Fenster: {{ i.games_count }} Partien · ACPL {{ i.avg_acpl ?? '—' }} · Bilanz
-          {{ i.record.win }}W / {{ i.record.loss }}L / {{ i.record.draw }}D
-        </p>
-        <ul class="weak-list">
-          @for (w of i.top_weaknesses.slice(0, 3); track w.id) {
-            <li>
-              <span class="badge" [class]="w.severity">{{ w.severity }}</span>
-              <strong>{{ w.title }}</strong>
-              <span class="muted">{{ w.metric }}</span>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-  }
-
-  @if (plan(); as p) {
+  @if (coach(); as coach) {
     <section class="panel">
       <div class="row" style="justify-content: space-between">
-        <h2>Aktueller Trainingsplan</h2>
-        <a routerLink="/plan">Alles anzeigen</a>
+        <div>
+          <p class="muted">{{ coach.level_label }} · Ziel {{ coach.target_rating }}</p>
+          <h2>{{ coach.assignment_title }}</h2>
+        </div>
+        <a class="btn" routerLink="/quiz">Üben</a>
       </div>
-      @if (!p.items.length) {
-        <p class="muted">{{ p.message || 'Noch kein Plan.' }}</p>
-      } @else {
-        <ol class="plan-preview">
-          @for (item of p.items.slice(0, 3); track item.id) {
-            <li [class.done]="item.completed">
-              <strong>{{ item.title }}</strong>
-              <span class="muted">{{ firstTaskText(item.tasks[0]) }}</span>
-            </li>
-          }
-        </ol>
+      <p>{{ coach.diagnosis }}</p>
+      @if (coach.progress) {
+        <p class="muted">{{ coach.progress }}</p>
       }
+      @if (coach.tasks[0]; as task) {
+        <p><strong>Hausaufgabe:</strong> {{ task.text }}</p>
+      }
+      <a routerLink="/plan">Trainingsplan</a>
+      ·
+      <a routerLink="/curriculum">Lehrplan</a>
     </section>
   }
 </section>

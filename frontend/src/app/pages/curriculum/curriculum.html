@@ -1,0 +1,71 @@
+<section class="stack">
+  <div>
+    <h1>Lehrplan</h1>
+    <p class="muted">Jeder Tag ist eine Aufgabe. Die Schritte stehen unter dem Tag.</p>
+  </div>
+
+  @if (message()) {
+    <p class="panel" role="alert">{{ message() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lade Lehrplan…</p>
+  } @else if (curriculum(); as plan) {
+    <article class="panel">
+      <p>{{ plan.intro }}</p>
+      <ul>
+        @for (line of plan.guidelines; track line) {
+          <li>{{ line }}</li>
+        }
+      </ul>
+      <a routerLink="/plan">Zur aktuellen Auswertung</a>
+    </article>
+
+    <h2>Was du an welchem Tag tust</h2>
+    @for (day of plan.week; track day.day) {
+      <article class="panel" [class.emphasis]="day.emphasis">
+        <div class="row">
+          <h2>{{ day.day }}</h2>
+          @if (day.emphasis) {
+            <span class="badge">Diese Woche wichtiger</span>
+          }
+          <span class="muted">{{ day.minutes ? day.minutes + ' Minuten' : 'frei' }}</span>
+        </div>
+        <p><strong>{{ day.title }}</strong></p>
+        <p class="muted">{{ day.detail }}</p>
+        <ol>
+          @for (step of day.steps; track step) {
+            <li>{{ step }}</li>
+          }
+        </ol>
+      </article>
+    }
+
+    <h2>Wozu die Aufgaben da sind</h2>
+    @for (area of plan.areas; track area.id) {
+      <article class="panel" [class.emphasis]="area.emphasis">
+        <div class="row">
+          <h2>{{ area.title }}</h2>
+          @if (area.emphasis) {
+            <span class="badge">Diese Woche</span>
+          }
+        </div>
+        <p>{{ area.summary }}</p>
+        <ul class="sessions">
+          @for (session of area.sessions; track session.label) {
+            <li>
+              <strong>{{ session.label }} · {{ session.minutes }} Min.</strong>
+              {{ session.text }}
+              @if (session.route) {
+                <a [routerLink]="session.route">In der App</a>
+              }
+              @if (session.url) {
+                <a [href]="session.url" target="_blank" rel="noopener">{{ session.url_label }}</a>
+              }
+            </li>
+          }
+        </ul>
+      </article>
+    }
+  }
+</section>

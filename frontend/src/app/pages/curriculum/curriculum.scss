@@ -1,0 +1,25 @@
+.focus-row {
+  background: var(--accent-soft);
+}
+
+.emphasis {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.sessions {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.sessions li {
+  margin-bottom: 0.75rem;
+}
+
+.sessions a {
+  margin-left: 0.5rem;
+  font-weight: 600;
+}
+
+td .muted {
+  margin-top: 0.2rem;
+}

@@ -57,6 +57,8 @@ button,
   background: var(--accent);
   color: #fff;
   font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
 }
 
 button:disabled {

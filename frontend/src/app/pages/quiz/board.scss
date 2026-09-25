@@ -1,0 +1,103 @@
+.board-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(100%, 480px);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  user-select: none;
+}
+
+.board.locked {
+  pointer-events: none;
+}
+
+button.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: #f0d9b5;
+  color: inherit;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+
+button.square.dark {
+  background: #b58863;
+}
+
+button.square.selected {
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+
+button.square.target::after {
+  content: '';
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(15, 107, 76, 0.45);
+  position: absolute;
+}
+
+button.square.target.capture::after {
+  width: 88%;
+  height: 88%;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 4px rgba(15, 107, 76, 0.55);
+}
+
+button.square:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.piece {
+  font-family: 'Apple Symbols', 'Segoe UI Symbol', 'Noto Sans Symbols 2', sans-serif;
+  font-size: clamp(1.7rem, 4.2vw, 2.7rem);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.piece.w {
+  color: #fff;
+  text-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.7),
+    0 0 1px #000;
+}
+
+.piece.b {
+  color: #1a2421;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.promo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.promo button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}

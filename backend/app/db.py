@@ -74,6 +74,14 @@ CREATE TABLE IF NOT EXISTS plan_progress (
     updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS quiz_attempts (
+    game_id TEXT NOT NULL,
+    ply INTEGER NOT NULL,
+    correct INTEGER NOT NULL,
+    attempted_at TEXT NOT NULL,
+    PRIMARY KEY (game_id, ply)
+);
+
 CREATE TABLE IF NOT EXISTS sync_state (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     last_sync_at TEXT,

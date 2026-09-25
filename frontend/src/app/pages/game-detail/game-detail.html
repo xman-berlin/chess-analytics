@@ -24,6 +24,14 @@
       </div>
     </header>
 
+    @if (review(); as review) {
+      <section class="panel">
+        <h2>Auswertung</h2>
+        <p>{{ review.headline }}</p>
+        <p>{{ review.detail }}</p>
+      </section>
+    }
+
     <section class="panel">
       <h2>Kritische Züge</h2>
       @if (!issues().length) {
@@ -43,7 +51,7 @@
           </thead>
           <tbody>
             @for (i of issues(); track i.id) {
-              <tr>
+              <tr [class.focus-row]="focusPly() === i.ply">
                 <td>{{ i.ply }}</td>
                 <td>{{ i.move_san }}</td>
                 <td [class]="severityClass(i.severity)">{{ i.severity }}</td>

@@ -1,0 +1,37 @@
+<div class="board-wrap">
+  <div class="board" [class.locked]="locked()" aria-label="Schachbrett">
+    @for (square of squares(); track square.square) {
+      <button
+        type="button"
+        class="square"
+        [class.dark]="square.dark"
+        [class.selected]="square.selected"
+        [class.target]="square.target"
+        [class.capture]="square.capture"
+        [attr.aria-label]="square.square"
+        [disabled]="locked()"
+        (click)="onSquare(square.square)"
+      >
+        @if (square.glyph) {
+          <span class="piece" [class.w]="square.color === 'w'" [class.b]="square.color === 'b'">{{
+            square.glyph
+          }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  @if (promotion()) {
+    <div class="promo" role="group" aria-label="Bauernumwandlung">
+      @for (choice of promotionChoices(); track choice.uci) {
+        <button type="button" (click)="confirmPromotion(choice.uci)">
+          <span class="piece" [class.w]="orientation() === 'white'" [class.b]="orientation() === 'black'">{{
+            choice.glyph
+          }}</span>
+          {{ choice.label }}
+        </button>
+      }
+      <button type="button" class="secondary" (click)="cancelPromotion()">Abbrechen</button>
+    </div>
+  }
+</div>

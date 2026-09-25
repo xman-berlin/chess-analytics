@@ -9,9 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .chesscom_client import ChessComClient
+from .coach import get_coach, review_game
 from .config import get_settings
 from .db import db, row_to_dict, rows_to_dicts
 from .insights import get_insights
+from .leaks import get_leak_report, get_quiz, record_quiz_attempt, reset_quiz
 from .plan import generate_training_plan, get_training_plan, set_plan_item_completed
 from .scheduler import (
     analyze_pipeline,
@@ -45,6 +47,12 @@ app.add_middleware(
 
 class PlanItemUpdate(BaseModel):
     completed: bool
+
+
+class QuizAttempt(BaseModel):
+    game_id: str
+    ply: int
+    uci: str
 
 
 class SettingsUpdate(BaseModel):
@@ -196,12 +204,45 @@ def get_game(game_id: str) -> dict[str, Any]:
                 (game_id,),
             ).fetchall()
         )
-    return {"game": game, "issues": issues}
+    return {"game": game, "issues": issues, "review": review_game(issues, game)}
 
 
 @app.get("/api/insights")
 def insights(window: int = Query(40, ge=5, le=100)) -> dict[str, Any]:
     return get_insights(window)
+
+
+@app.get("/api/leaks")
+def leaks(window: int = Query(20, ge=5, le=40)) -> dict[str, Any]:
+    return get_leak_report(window)
+
+
+@app.get("/api/coach")
+def coach() -> dict[str, Any]:
+    return get_coach()
+
+
+@app.get("/api/quiz")
+def quiz(window: int = Query(20, ge=5, le=40)) -> dict[str, Any]:
+    return get_quiz(window)
+
+
+@app.post("/api/quiz/attempts")
+def quiz_attempt(body: QuizAttempt) -> dict[str, Any]:
+    result = record_quiz_attempt(body.game_id, body.ply, body.uci.strip())
+    if result.get("error") == "not_found":
+        raise HTTPException(404, "Stellung nicht gefunden")
+    if result.get("error") == "illegal":
+        raise HTTPException(400, "Zug ist in dieser Stellung nicht legal")
+    if result.get("error"):
+        raise HTTPException(400, "Stellung kann nicht geübt werden")
+    return result
+
+
+@app.post("/api/quiz/reset")
+def quiz_reset() -> dict[str, str]:
+    reset_quiz()
+    return {"status": "reset"}
 
 
 @app.get("/api/plan")

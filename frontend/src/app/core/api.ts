@@ -125,6 +125,133 @@ export interface GameListItem {
   inaccuracies: number | null;
 }
 
+export interface LeakBucket {
+  games: number;
+  thrown_wins: number;
+  thrown_draws: number;
+  lost_early: number;
+  other: number;
+}
+
+export interface LeakReport {
+  target_rating: number;
+  window: number;
+  recent: LeakBucket;
+  prior: LeakBucket;
+  focus: 'thrown_win' | 'thrown_draw' | 'lost_early' | null;
+  focus_label: string | null;
+  focus_why: string | null;
+  prompt: string | null;
+}
+
+export interface QuizPosition {
+  game_id: string;
+  ply: number;
+  fen: string;
+  opening_name: string | null;
+  user_result: string | null;
+  phase: string | null;
+  eval_before: number;
+  cpl: number | null;
+  url: string | null;
+}
+
+export interface QuizPayload {
+  target_rating: number;
+  focus: LeakReport['focus'];
+  focus_label: string | null;
+  focus_why: string | null;
+  prompt: string | null;
+  available: number;
+  solved: number;
+  positions: QuizPosition[];
+}
+
+export interface GameReview {
+  category: string;
+  label: string | null;
+  opponent: string | null;
+  result: string | null;
+  result_word: string;
+  ply: number | null;
+  move_san: string | null;
+  best_move_san: string | null;
+  opening_name: string | null;
+  headline: string;
+  detail: string;
+  game_id?: string;
+  url?: string | null;
+}
+
+export interface CoachTask {
+  kind: 'practice' | 'game' | 'review';
+  text: string;
+}
+
+export interface CurriculumSession {
+  label: string;
+  minutes: number;
+  text: string;
+  route?: string;
+  url?: string;
+  url_label?: string;
+}
+
+export interface CurriculumArea {
+  id: string;
+  title: string;
+  summary: string;
+  emphasis: boolean;
+  sessions: CurriculumSession[];
+}
+
+export interface CurriculumDay {
+  day: string;
+  area: string;
+  title: string;
+  minutes: number;
+  detail: string;
+  steps: string[];
+  emphasis: boolean;
+}
+
+export interface Curriculum {
+  intro: string;
+  guidelines: string[];
+  areas: CurriculumArea[];
+  week: CurriculumDay[];
+  emphasis: string[];
+  focus_label: string | null;
+}
+
+export interface CoachPlan {
+  target_rating: number;
+  rating: number | null;
+  best_rating: number | null;
+  level_label: string;
+  level_principle: string;
+  diagnosis: string;
+  progress: string | null;
+  focus: LeakReport['focus'];
+  focus_label: string | null;
+  assignment_title: string;
+  tasks: CoachTask[];
+  withheld: string[];
+  practice: { available: number; solved: number };
+  latest_game: GameReview | null;
+  recent: LeakBucket;
+  prior: LeakBucket;
+  curriculum: Curriculum;
+}
+
+export interface QuizAttemptResult {
+  correct: boolean;
+  best_san: string;
+  played_san: string | null;
+  attempt_san: string;
+  why: string;
+}
+
 export interface MoveIssue {
   id: number;
   game_id: string;
@@ -151,6 +278,30 @@ export class Api {
   triggerSync(full = false): Observable<{ status: string; message?: string }> {
     const params = new HttpParams().set('full', String(full)).set('background', 'true');
     return this.http.post<{ status: string; message?: string }>(`${API}/sync`, null, { params });
+  }
+
+  getCoach(): Observable<CoachPlan> {
+    return this.http.get<CoachPlan>(`${API}/coach`);
+  }
+
+  getLeaks(window = 20): Observable<LeakReport> {
+    return this.http.get<LeakReport>(`${API}/leaks`, {
+      params: new HttpParams().set('window', window),
+    });
+  }
+
+  getQuiz(window = 20): Observable<QuizPayload> {
+    return this.http.get<QuizPayload>(`${API}/quiz`, {
+      params: new HttpParams().set('window', window),
+    });
+  }
+
+  checkQuiz(body: { game_id: string; ply: number; uci: string }): Observable<QuizAttemptResult> {
+    return this.http.post<QuizAttemptResult>(`${API}/quiz/attempts`, body);
+  }
+
+  resetQuiz(): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${API}/quiz/reset`, null);
   }
 
   getInsights(window = 40): Observable<Insights> {
@@ -194,10 +345,13 @@ export class Api {
   getGame(id: string): Observable<{
     game: GameListItem & Record<string, unknown>;
     issues: MoveIssue[];
+    review: GameReview;
   }> {
-    return this.http.get<{ game: GameListItem & Record<string, unknown>; issues: MoveIssue[] }>(
-      `${API}/games/${id}`,
-    );
+    return this.http.get<{
+      game: GameListItem & Record<string, unknown>;
+      issues: MoveIssue[];
+      review: GameReview;
+    }>(`${API}/games/${id}`);
   }
 
   getSettings(): Observable<Record<string, unknown>> {

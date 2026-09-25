@@ -1,0 +1,92 @@
+<section class="stack">
+  <div class="row" style="justify-content: space-between">
+    <div>
+      <h1>Üben</h1>
+      <p class="muted">
+        Die Hausaufgabe aus dem <a routerLink="/plan">Trainingsplan</a>. Du bist am Zug.
+      </p>
+    </div>
+    <button type="button" class="secondary" (click)="reset()">Runde zurücksetzen</button>
+  </div>
+
+  @if (error()) {
+    <p class="panel" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lade Stellungen…</p>
+  } @else if (payload(); as quiz) {
+    @if (!quiz.focus) {
+      <div class="panel">
+        <p>In den letzten 20 Partien gibt es noch kein klares Leck. Sync zuerst weitere Partien.</p>
+        <a routerLink="/">Zum Dashboard</a>
+      </div>
+    } @else if (!positions().length) {
+      <div class="panel">
+        @if (quiz.available === 0) {
+          <p>Für „{{ quiz.focus_label }}“ liegen keine übbaren Stellungen im aktuellen Fenster.</p>
+        } @else {
+          <p>
+            Alle {{ quiz.available }} Stellungen zu „{{ quiz.focus_label }}“ sind gelöst
+            @if (sessionSolved()) {
+              · {{ sessionSolved() }} in dieser Sitzung
+            }.
+          </p>
+        }
+        <a routerLink="/">Zum Dashboard</a>
+      </div>
+    } @else if (current(); as position) {
+      <div class="quiz-layout">
+        <app-quiz-board
+          [fen]="position.fen"
+          [revision]="revision()"
+          [locked]="checking() || !!feedback()"
+          (played)="onPlayed($event)"
+        />
+
+        <div class="panel quiz-side">
+          <p class="badge">{{ quiz.focus_label }}</p>
+          <h2>{{ quiz.prompt }}</h2>
+          <p class="muted">{{ quiz.focus_why }}</p>
+          <p>
+            Bewertung vor dem Fehler: <strong>{{ formatEval(position.eval_before) }}</strong>
+            · Zug {{ position.ply }}
+            @if (position.opening_name) {
+              · {{ position.opening_name }}
+            }
+          </p>
+          <p class="muted">
+            Noch {{ positions().length }} in dieser Runde
+            @if (quiz.solved + sessionSolved()) {
+              · {{ quiz.solved + sessionSolved() }} gelöst
+            }
+          </p>
+
+          @if (checking()) {
+            <p class="muted">Prüfe Zug…</p>
+          } @else if (feedback(); as result) {
+            <div class="result" [class.ok]="result.correct" [class.bad]="!result.correct">
+              @if (result.correct) {
+                <p><strong>Richtig:</strong> {{ result.best_san }}</p>
+              } @else {
+                <p><strong>Daneben.</strong> Gespielt: {{ result.attempt_san }}.</p>
+                <p>In der Partie lief {{ result.played_san }}. Besser ist {{ result.best_san }}.</p>
+              }
+              @if (result.why) {
+                <p><strong>Warum:</strong> {{ result.why }}</p>
+              }
+            </div>
+            <div class="row">
+              <button type="button" (click)="next()">Nächste Stellung</button>
+              <a [routerLink]="['/games', position.game_id]" [queryParams]="{ ply: position.ply }"
+                >Partie öffnen</a
+              >
+            </div>
+          } @else {
+            <p class="muted">Figur antippen, dann das Zielfeld.</p>
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

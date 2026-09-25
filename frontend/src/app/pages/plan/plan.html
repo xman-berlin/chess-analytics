@@ -2,81 +2,101 @@
   <div class="row" style="justify-content: space-between">
     <div>
       <h1>Trainingsplan</h1>
-      <p class="muted">Priorisiert aus deinen analysierten Daily-Partien — nicht generische Tipps.</p>
+      <p class="muted">Eine Hausaufgabe aus deinem Daily-Niveau und den letzten Partien.</p>
     </div>
-    <button type="button" class="secondary" (click)="refresh()">Plan aktualisieren</button>
+    <button type="button" class="secondary" (click)="load()">Neu auswerten</button>
   </div>
 
   @if (message()) {
-    <p class="muted">{{ message() }}</p>
+    <p class="panel" role="alert">{{ message() }}</p>
   }
 
   @if (loading()) {
-    <p class="muted">Lade Plan…</p>
-  } @else if (plan(); as p) {
-    @if (p.generated_at) {
-      <p class="muted">Erstellt: {{ p.generated_at }} · Fenster {{ p.window_size }} Partien</p>
-    }
-    @if (!p.items.length) {
-      <div class="panel">
-        <p>{{ p.message || 'Noch kein Plan. Sync zuerst Partien.' }}</p>
-        <a routerLink="/">Zum Dashboard</a>
-      </div>
-    } @else {
-      <div class="stack">
-        @for (item of p.items; track item.id) {
-          <article class="panel plan-item">
-            <div class="row" style="justify-content: space-between">
-              <div class="row">
-                <span class="badge" [class]="item.severity">#{{ item.priority }}</span>
-                <h2>{{ item.title }}</h2>
-              </div>
-              <label class="check">
-                <input
-                  type="checkbox"
-                  [checked]="item.completed"
-                  (change)="toggle(item.id, $any($event.target).checked)"
-                />
-                Erledigt
-              </label>
-            </div>
-            <p class="muted">{{ item.metric }}</p>
-            <p>{{ item.why }}</p>
-            <h3>Aufgaben</h3>
-            <ul class="tasks">
-              @for (task of item.tasks; track $index) {
-                <li>
-                  <span>{{ taskText(task) }}</span>
-                  @if (taskLinks(task).length) {
-                    <div class="task-links">
-                      @for (link of taskLinks(task); track link.url) {
-                        <a [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
-                        @if (link.hint) {
-                          <span class="muted hint">{{ link.hint }}</span>
-                        }
-                      }
-                    </div>
-                  }
-                </li>
-              }
-            </ul>
-            @if (item.critical_refs?.length) {
-              <h3>Eigene kritische Stellungen</h3>
-              <ul>
-                @for (ref of item.critical_refs; track ref.game_id + ref.ply) {
-                  <li>
-                    <a [routerLink]="['/games', ref.game_id]">Partie {{ ref.game_id }}</a>
-                    · Zug {{ ref.ply }}
-                    @if (ref.url) {
-                      · <a [href]="ref.url" target="_blank" rel="noopener">chess.com</a>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-          </article>
+    <p class="muted">Werte die Partien aus…</p>
+  } @else if (coach(); as coach) {
+    <article class="panel">
+      <p class="muted">
+        @if (coach.rating) {
+          {{ coach.rating }} Daily
+          @if (coach.best_rating) {
+            · Best {{ coach.best_rating }}
+          }
+          · Ziel {{ coach.target_rating }}
+        } @else {
+          Ziel {{ coach.target_rating }} Daily
         }
-      </div>
+      </p>
+      <h2>{{ coach.level_label }}</h2>
+      <p>{{ coach.level_principle }}</p>
+    </article>
+
+    <article class="panel">
+      <h2>Auswertung</h2>
+      <p>{{ coach.diagnosis }}</p>
+      @if (coach.progress) {
+        <p>{{ coach.progress }}</p>
+      }
+      @if (coach.recent.games > 0) {
+        <ul class="leak-counts">
+          <li [class.active]="coach.focus === 'thrown_win'">
+            Gewinn verschenkt <strong>{{ coach.recent.thrown_wins }}</strong>
+          </li>
+          <li [class.active]="coach.focus === 'thrown_draw'">
+            Remis verspielt <strong>{{ coach.recent.thrown_draws }}</strong>
+          </li>
+          <li [class.active]="coach.focus === 'lost_early'">
+            Schon früh verloren <strong>{{ coach.recent.lost_early }}</strong>
+          </li>
+        </ul>
+      }
+    </article>
+
+    <article class="panel">
+      <h2>{{ coach.assignment_title }}</h2>
+      @if (!coach.tasks.length) {
+        <p>Sync zuerst Partien. Danach steht hier eine Aufgabe.</p>
+        <a routerLink="/">Zum Dashboard</a>
+      } @else {
+        <ol class="tasks">
+          @for (task of coach.tasks; track task.kind) {
+            <li>{{ task.text }}</li>
+          }
+        </ol>
+        @if (coach.focus) {
+          <a class="btn" routerLink="/quiz">
+            @if (coach.practice.available > 0) {
+              Jetzt üben ({{ coach.practice.available }})
+            } @else {
+              Üben öffnen
+            }
+          </a>
+        }
+      }
+      <p class="muted curriculum-link">
+        Der <a routerLink="/curriculum">Lehrplan</a> bleibt die ganze Woche stehen. Diese Auswertung legt nur fest, welches Gebiet länger ist.
+      </p>
+    </article>
+
+    @if (coach.latest_game; as game) {
+      <article class="panel">
+        <h2>Letzte Partie</h2>
+        <p>{{ game.headline }}</p>
+        <p>{{ game.detail }}</p>
+        @if (game.game_id) {
+          <a [routerLink]="['/games', game.game_id]" [queryParams]="{ ply: game.ply }">Partie öffnen</a>
+        }
+      </article>
+    }
+
+    @if (coach.withheld.length) {
+      <article class="panel">
+        <h2>Diese Woche nicht</h2>
+        <ul>
+          @for (item of coach.withheld; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </article>
     }
   }
 </section>
